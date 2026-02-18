@@ -412,6 +412,8 @@ mean(draws_informative$theta)
 
 The posterior mean shifted compared to the flat prior. In which direction? Why? Does this match what happened in Section 4 when you changed the prior by hand?
 
+Answer: The posterior mean is now lower and closer to 0.5. This is because adding an informative prior that's weighted more heavily around 0.5 shifts the posterior to be closer to the prior (with maximum probability at 0.5) than the likelihood. This also matches what happened in Section 4.
+
 ## Section 12: Overlay both posteriors
 
 ```{r}
@@ -431,6 +433,8 @@ bind_rows(
 
 With only 5 flips, the prior matters. What would you expect if you had 500 flips? (You can test this: change the data to `heads = 300, trials = 500` and refit both models.)
 
+Answer: I would expect the prior to matter a lot less and that the posterior would look a lot more like the likelihood (highest probability at 0.6).
+
 ## Section 13: Fill in the blank
 
 Using your posterior draws, make the probability statements that MLE cannot. Hint: what fraction of your draws satisfy a given condition? Think about what `mean()` returns when applied to a logical vector.
@@ -449,18 +453,26 @@ mean(draws_flat$theta > 0.4 & draws_flat$theta < 0.8)
 
 In lecture, the blank was: "There's a \_\_\_% chance that $\theta$ is 0.6." With continuous posterior draws, we can't ask about a single point. Instead, we ask about intervals. Compute: "There's a \_\_\_% chance that $\theta$ is between 0.55 and 0.65." How does this compare to the grid approximation posterior at $\theta = 0.6$?
 
+```{r}
+print(glue("There's a {mean(draws_flat$theta > 0.55 & draws_flat$theta < 0.65) * 100}% chance that theta is between 0.55 and 0.65"))
+```
+
+Answer: The original grid approximation posterior for theta = 0.6 was 30.1966%, so this is lower, which is because the probability mass is more spread out over individual values (as opposed to just 5 theta values in the grid approximation).
+
 ## Section 14: Credible intervals
 
 The 95% credible interval is the central 95% of the posterior draws. This has the interpretation that frequentist confidence intervals don't: "There's a 95% probability that $\theta$ lies within this interval."
 
 ```{r}
-# # 95% credible interval
-# quantile(draws_flat$theta, probs = c(0.025, 0.975))
+# 95% credible interval
+quantile(draws_flat$theta, probs = c(0.025, 0.975))
 ```
 
 ### Question 14.1
 
 Is $\theta = 0.5$ inside the 95% credible interval? What about $\theta = 0.2$? What does this tell you?
+
+Answer: Both 0.5 and 0.2 are inside the 95% credible interval, which means that the real value of theta could still plausibly (within 95% of the time) be one of those two values.
 
 # Wrapping up
 
@@ -475,6 +487,8 @@ All three gave you the same answer. The first two don't scale to real models wit
 ### Final reflection
 
 In your own words, explain the connection between the posterior table from Section 3 and the histogram from Section 10. What's the same? What's different?
+
+Answer: Both show the posterior probability density over different possible theta values when using a flat prior. Both also show peaks in posterior probability around a theta of 0.6. However, the histogram from Section 10 has more dense sampling of possible theta values and shows the approximate posterior probability (from simulation/sampling), while the posterior table from Section 3 shows the exact posterior probabilities for a much smaller set of possible theta values.
 
 ## References
 
