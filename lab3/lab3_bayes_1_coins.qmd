@@ -209,23 +209,23 @@ Replace the 5 $\theta_i$ values with `seq(0, 1, length.out = 1000)` and repeat t
 
 ::: {.callout-tip collapse="true" title="Code"}
 ```{r}
-# ## Define a fine grid of theta values
-# grid <- tibble(
-#   theta = seq(0, 1, length.out = 1000)
-# ) %>%
-#   mutate(
-#     prior = 1,                                           # flat prior (unnormalized is fine)
-#     likelihood = dbinom(3, size = 5, prob = theta),      # score each theta
-#     unstd_posterior = prior * likelihood,                 # prior × likelihood
-#     posterior = unstd_posterior / sum(unstd_posterior)     # normalize
-#   )
-# 
-# ## Plot the posterior
-# ggplot(grid, aes(x = theta, y = posterior)) +
-#   geom_line() +
-#   labs(x = expression(theta), y = "Posterior probability",
-#        title = "Posterior: 3 heads out of 5 (Y = 3, N = 5), flat prior") +
-#   theme_minimal()
+## Define a fine grid of theta values
+grid <- tibble(
+  theta = seq(0, 1, length.out = 1000)
+) %>%
+  mutate(
+    prior = 1,                                           # flat prior (unnormalized is fine)
+    likelihood = dbinom(3, size = 5, prob = theta),      # score each theta
+    unstd_posterior = prior * likelihood,                 # prior × likelihood
+    posterior = unstd_posterior / sum(unstd_posterior)     # normalize
+  )
+
+## Plot the posterior
+ggplot(grid, aes(x = theta, y = posterior)) +
+  geom_line() +
+  labs(x = expression(theta), y = "Posterior probability",
+       title = "Posterior: 3 heads out of 5 (Y = 3, N = 5), flat prior") +
+  theme_minimal()
 ```
 :::
 
@@ -233,11 +233,18 @@ Replace the 5 $\theta_i$ values with `seq(0, 1, length.out = 1000)` and repeat t
 
 Where is the peak of the posterior? Does this match the MLE from Section 2?
 
+```{r}
+grid %>% 
+  filter(posterior == max(posterior))
+```
+
+Answer: The peak of the posterior is at 0.5995996 =\~ 0.6, which matches the MLE from Section 2.
+
 ## Section 6: Grid approximation with an informative prior
 
 Now replace the flat prior with a Beta(10, 10) distribution — peaked near 0.5, skeptical of extreme values.\
 \
-***Note below:** The likelihood and posterior are on different scales, so we rescale the likelihood to the same height for visual comparison. It's juat a plotting/visualization trick. The shapes and peaks are what matter here, not the y-axis values.*
+***Note below:** The likelihood and posterior are on different scales, so we rescale the likelihood to the same height for visual comparison. It's just a plotting/visualization trick. The shapes and peaks are what matter here, not the y-axis values.*
 
 ```{r}
 grid_informative <- tibble(
@@ -267,6 +274,8 @@ grid_informative %>%
 ### Question 6.1
 
 The posterior (blue) sits between the prior (red) and the likelihood (gray). Why? What would happen to the posterior if you had $Y = 300$ heads out of $N = 500$ instead of $Y = 3$ out of $N = 5$?
+
+Answer: The posterior is between the prior and the likelihood because it is shaped by both. If you had more evidence, the posterior would be a lot more aligned with the likelihood than the prior.
 
 ## Section 7: Watch the prior wash out
 
@@ -302,9 +311,11 @@ ggplot(grid_by_n, aes(x = theta, y = posterior)) +
 
 What happens to the posterior as n increases? Does the prior still matter at n = 200? This is what the "Three ingredients" slide was about: "With lots of data — likelihood dominates."
 
+Answer: As n increases, the posterior becomes more centered on the peak of the likelihood (0.6) and becomes steeper/more peaked. At n = 200, the prior has minimal/no influence on the posterior.
+
 # Part 3: Let brms do it
 
-Grid approximation works beautifully for one parameter. But your regression models have $\beta_0$, $\beta_1$, and $\sigma$ — three parameters. A 3D grid with 1000 points per dimension means \_\_\_\_\_\_\_(fill in the blank) cells. That's why we need MCMC. Let's fit the same coin problem with `brms` and see that it gives us the same answer.
+Grid approximation works beautifully for one parameter. But your regression models have $\beta_0$, $\beta_1$, and $\sigma$ — three parameters. A 3D grid with 1000 points per dimension means 1000\^3 = 1,000,000,000 (fill in the blank) cells. That's why we need MCMC. Let's fit the same coin problem with `brms` and see that it gives us the same answer.
 
 ## Section 8: Set up the coin data
 
@@ -342,32 +353,38 @@ summary(fit_flat)
 The intercept is on the logit scale. To convert to $\theta$ (probability scale), apply the inverse logit: `plogis()`. What's the posterior mean of $\theta$? Is it closer to 0.5 or 0.6? Why?
 
 ```{r}
-# # Extract posterior draws of the intercept
-# draws_flat <- as_draws_df(fit_flat) %>%
-#   mutate(theta = plogis(b_Intercept))  # convert logit → probability
-# 
-# # Posterior mean of theta
-# mean(draws_flat$theta)
+# Extract posterior draws of the intercept
+draws_flat <- as_draws_df(fit_flat) %>%
+  mutate(theta = plogis(b_Intercept))  # convert logit → probability
+
+# Posterior mean of theta
+mean(draws_flat$theta)
 ```
+
+Answer: The posterior mean of theta is 0.598, which is closer to 0.6. This is because with a flat prior the posterior is essentially the same as the likelihood.
 
 ### Question 9.2
 
 How does this compare to your grid approximation result from Section 5?
 
+Answer: This is pretty similar to the grid approximation result (0.5995996), although slightly less close to 0.6 exactly.
+
 ## Section 10: Plot the posterior from MCMC draws
 
 ```{r}
-# ggplot(draws_flat, aes(x = theta)) +
-#   geom_histogram(aes(y = after_stat(density)), bins = 50,
-#                  fill = "steelblue", alpha = 0.7) +
-#   labs(x = expression(theta), y = "Density",
-#        title = "MCMC posterior: 3 heads out of 5 (Y = 3, N = 5), approximately flat prior") +
-#   theme_minimal()
+ggplot(draws_flat, aes(x = theta)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 50,
+                 fill = "steelblue", alpha = 0.7) +
+  labs(x = expression(theta), y = "Density",
+       title = "MCMC posterior: 3 heads out of 5 (Y = 3, N = 5), approximately flat prior") +
+  theme_minimal()
 ```
 
 ### Question 10.1
 
 This histogram is made from 12,000 draws (4 chains × 3000 post-warmup). Each draw is a value of $\theta$ sampled from the posterior. The histogram IS the posterior. Compare the shape to your grid approximation plot from Section 5 — how does the shape compare to your grid approximation plot from Section 5? What's similar? What's different?
+
+Answer: The overall shape is very similar, but since this histogram is drawn from simulations it's a lot less smooth.
 
 ## Section 11: Fit with brms — informative prior
 
