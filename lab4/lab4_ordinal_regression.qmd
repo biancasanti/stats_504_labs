@@ -40,6 +40,7 @@ library(patchwork)
 library(gofcat)
 library(sure)
 library(MASS)
+library(broom)
 
 options(scipen = 999)
 ```
@@ -248,13 +249,13 @@ Display the result as a table using `kable()`.
 #| eval: false
 
 hand_calc <- ratings %>%
-  count(___) %>%
+  count(eval_psych) %>%
   rename(category = eval_psych) %>%
   mutate(
-    proportion     = n / ___,
-    cumul_proportion = ___(proportion),
-    cumul_odds       = cumul_proportion / (1 - ___),
-    log_cumul_odds   = ___(cumul_odds)
+    proportion     = n / sum(n),
+    cumul_proportion = cumsum(proportion),
+    cumul_odds       = cumul_proportion / (1 - cumul_proportion),
+    log_cumul_odds   = log(cumul_odds)
   )
 
 hand_calc %>% kable(digits = 3)
@@ -274,6 +275,15 @@ The last category (Excellent) will be `Inf`. This is because $P(Y \leq \text{Exc
 Fit an intercept-only ordinal model on the Psychology Dept data: `clm(eval_psych ~ 1, data = ratings)`.
 
 Compare the model's threshold estimates to your hand-calculated log-cumulative-odds. How do they compare, and what does this tell you about what the model is doing?
+
+```{r}
+
+kable(tidy(clm(eval_psych ~ 1, data = ratings)))
+
+```
+
+Answer: The model thresholds are very similar to the hand-calculated log-cumulative-odds, which confirms that the model is trying to estimate category boundaries in the log cumulative odds space.
+
 
 ### Question 2.3: Cumulative probability plot {.unnumbered}
 
@@ -314,6 +324,12 @@ ggplot(freq_table) +
 Answer these questions:
 
 What do the gray bar and blue segment for "Fair" represent? Write them as probability statements.
+
+Answer: 
+
+The gray bar represents the cumulative probability of outcomes that are below the threshold between Fair and Good, P(rating < tau_2) or P(Fair) + P(Poor). 
+
+The blue segment represents the probability of an outcome being Fair, P(tau_1 < rating < tau_2) or P(Fair).
 
 ------------------------------------------------------------------------
 
