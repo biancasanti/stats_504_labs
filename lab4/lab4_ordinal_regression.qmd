@@ -194,6 +194,7 @@ a)  Convert the Psychology Dept thresholds to cumulative probabilities using `pl
 ::: {.callout-tip collapse="true" title="Hint: What does plogis() do?"}
 `plogis()` is the inverse logit. It converts log-cumulative-odds back to a probability: $\text{plogis}(\tau) = \frac{e^\tau}{1 + e^\tau} = P(Y \leq k)$
 :::
+ 
 
 b)  Suppose you want a rating distribution where 10% are Poor, 30% Fair, 40% Good, and 20% Excellent. What thresholds would produce this? Use `qlogis()`. ::: {.callout-tip collapse="true" title="Hint: What does qlogis() do?"} `qlogis()` is the logit function, which goes the other direction. Give it a cumulative probability and it returns the threshold: $\text{qlogis}(p) = \log\frac{p}{1-p} = \tau$ ::: ::: {.panel-tabset} \## Your turn
 
@@ -202,16 +203,23 @@ b)  Suppose you want a rating distribution where 10% are Poor, 30% Fair, 40% Goo
 
 # (a) Thresholds to cumulative probabilities
 thresholds <- c(-1.0, 0.0, 1.0)
-cumul_probs <- plogis(___)
+cumul_probs <- plogis(thresholds)
+cumul_probs
 
 # Then get category-specific probabilities
-cat_probs <- diff(c(0, ___, 1))
+cat_probs <- diff(c(0, cumul_probs, 1))
 
 # (b) Desired split to thresholds
 desired_split <- c(0.10, 0.30, 0.40, 0.20)
-cumul_desired <- cumsum(desired_split[___])  # which elements?
-needed_thresholds <- qlogis(___)
+cumul_desired <- cumsum(desired_split[1:3])  # which elements?
+needed_thresholds <- qlogis(cumul_desired)
 ```
+
+Answers:
+
+(a) Each cumulative probability value represents the probability of getting anything under that threshold.
+
+(b) The thresholds that would produce this are `r needed_thresholds`
 
 ## Expected output
 
