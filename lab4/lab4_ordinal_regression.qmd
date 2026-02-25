@@ -343,6 +343,9 @@ The cumulative logit is: $\log\frac{P(Y \leq k)}{P(Y > k)}$
 
 For an outcome with $K$ categories, how many equations does this produce? Answer in 2--3 sentences.
 
+Answer: 
+The cumulative logit function computes log odds for each cumulative probability (for each category) as opposed to computing log odds for probability (normal logit link). For an outcome with $K$ categories, this produces $K - 1$ equations, one for each boundary between categories. 
+
 ### Question 3.2: Why not just use linear regression (aka metric models)? {.unnumbered}
 
 Linear regression, ANOVA, and t-tests are all metric models. Metric models assume the numbers you assign to categories have equal spacing and meaningful distances, where you're treating your scale like a ruler with evenly spaced tick marks.
@@ -350,6 +353,37 @@ Linear regression, ANOVA, and t-tests are all metric models. Metric models assum
 Using the simulation data, code Psychology Dept ratings as numbers: Poor = 1, Fair = 2, Good = 3, Excellent = 4. Fit `lm(rating_numeric ~ effectiveness)`. Then recode as Poor = 1, Fair = 2, Good = 3, Excellent = 10. Fit the model again.
 
 Report both slopes. In one sentence, explain why they differ and what this reveals about metric models.
+
+```{r}
+
+ratings_numeric_1 <- ratings %>%
+  mutate(rating_numeric = case_when(
+    eval_psych == "Poor" ~ 1, 
+    eval_psych == "Fair" ~ 2, 
+    eval_psych == "Good" ~ 3, 
+    eval_psych == "Excellent" ~ 4
+  ))
+
+ratings_numeric_2 <- ratings %>%
+  mutate(rating_numeric = case_when(
+    eval_psych == "Poor" ~ 1, 
+    eval_psych == "Fair" ~ 2, 
+    eval_psych == "Good" ~ 3, 
+    eval_psych == "Excellent" ~ 10
+  ))
+
+
+linear_model_1 <- lm(rating_numeric ~ effectiveness, data = ratings_numeric_1)
+linear_model_2 <- lm(rating_numeric ~ effectiveness, data = ratings_numeric_2)
+
+linear_model_1$coefficients["effectiveness"]
+linear_model_2$coefficients["effectiveness"]
+
+
+```
+
+Answer: The slopes differ because the linear model is treating the numeric ratings as numeric, so different values for the excellent category lead to different fits of the ratings to the underlying real effectiveness.
+
 
 ------------------------------------------------------------------------
 
