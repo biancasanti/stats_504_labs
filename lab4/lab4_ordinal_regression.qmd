@@ -702,9 +702,25 @@ Use the Brant test to check this assumption. State your conclusion.
 m2_polr <- polr(Rank ~ Gender + Age, data = gb)
 ```
 
+```{r}
+brant.test(m2_polr)
+
+```
+Answer: The proportional odds assumption is met.
+
+
 ### Question 9.2: Surrogate residuals {.unnumbered}
 
 Use the `sure` package to create a QQ plot of surrogate residuals. Does the latent normality assumption appear to hold?
+
+```{r}
+
+autoplot.clm(m2, what ="qq")
+
+```
+
+Answer: The latent normality assumption seems to hold. 
+
 
 ------------------------------------------------------------------------
 
@@ -723,6 +739,10 @@ Write a **1-paragraph results section** for your final model. Your paragraph mus
 ::: {.callout-warning collapse="true" title="Example write-up"}
 *We used a cumulative logit model (proportional odds) to predict technical rank (1st, 2nd, 3rd) from gender and age (N = \[n\]). A Brant test supported the proportional odds assumption (χ² = \[value\], p = \[value\]). Gender was \[not\] a significant predictor of rank (OR = \[value\], 95% CI \[\[lower\], \[upper\]\], p = \[value\]). Each additional year of age was associated with \[an increase/decrease\] in the odds of achieving a better rank (OR = \[value\], 95% CI \[\[lower\], \[upper\]\]). In terms of predicted probabilities, switching from female to male \[increased/decreased\] the probability of achieving rank 1 by approximately \[X\] percentage points.*
 :::
+
+
+
+
 
 ------------------------------------------------------------------------
 
