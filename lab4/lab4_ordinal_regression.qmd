@@ -669,6 +669,20 @@ Use `ggemmeans()` from the `ggeffects` package to plot predicted probabilities a
 `ggemmeans(m2, terms = c("Age", "Gender"))` returns a data frame of predicted probabilities. You can pipe it directly to `plot()` for a quick visualization, or use the returned data with `ggplot()` for more control over the appearance.
 :::
 
+```{r}
+
+
+ggplot(data = ggemmeans(m2, terms = c("Age", "Gender"))) +
+  geom_line(aes(x = x, y = predicted, color = group)) +
+  facet_wrap(~ response.level, 
+             labeller = as_labeller(c("3" = "Rank 3", "2" = "Rank 2", "1" = "Rank 1"))) +
+  labs(x = "Age", y = "Predicted Probability", color = "Gender")
+  
+
+```
+
+
+
 ------------------------------------------------------------------------
 
 # Part 9: Assumption Checking
