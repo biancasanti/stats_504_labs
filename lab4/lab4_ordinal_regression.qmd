@@ -635,6 +635,17 @@ Compute the average marginal effect of `Age` on each rank category using `avg_co
 
 Translate the marginal effect for **Rank 1** into a sentence that a non-statistician would understand.
 
+```{r}
+
+avg_comparisons(m2, variables = "Age", type = "prob") %>%
+  kable(digits = 3, caption = "Average marginal effect of Age on each rank")
+
+```
+
+
+Answer: Being 1 year older increases the probability of achieving rank 1 by 0.1%, which means that older people are more likely to finish first than younger people. 
+
+
 ------------------------------------------------------------------------
 
 # Part 8: Estimated Marginal Means
