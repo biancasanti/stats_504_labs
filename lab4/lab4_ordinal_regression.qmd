@@ -436,6 +436,23 @@ b)  A bar chart showing the proportion of bakers in each rank by Age (bin Age in
 `geom_bar(position = "fill")` gives proportions instead of counts. Map `x = Gender` (or your age groups) and `fill = Rank`. For part (b), create age bins with something like `cut(Age, breaks = c(15, 25, 35, 45, 55, 75))` inside a `mutate()` before plotting.
 :::
 
+```{r}
+
+# rank by gender plot
+ggplot(data = gb) +
+  geom_bar(aes(x = Gender, fill = Rank), position = "fill") +
+  ylab("Proportion")
+
+
+# rank by age plot 
+ggplot(data = gb %>%
+         mutate(age_group = cut(Age, breaks = c(15, 25, 35, 45, 55, 75)))) +
+  geom_bar(aes(x = age_group, fill = Rank), position = "fill")
+
+```
+
+
+
 ### Question 4.3: Build models {.unnumbered}
 
 Fit the following models using `clm()` from the `ordinal` package:
@@ -462,6 +479,27 @@ m1 <- clm(Rank ~ Gender, data = gb)
 m2 <- clm(Rank ~ Gender + Age, data = gb)
 m3 <- clm(Rank ~ Gender * Age, data = gb)
 ```
+
+(a)
+```{r}
+m2$coefficients
+```
+
+Answer: the threshold estimates represent the estimates for the threshold between the three ranks in log cumulative odds space, before any additional effects from gender or age (when all predictors = 0/default values). 
+
+(b)
+```{r}
+kable(tidy(m2, exponentiate = TRUE))
+```
+
+Answer: For Age, each additional year multiplies the probability of being in a higher rank by 1.0056
+
+(c)
+```{r}
+kable(predictions(m2, newdata = datagrid(Gender = "F", Age = 30)))
+```
+
+Answer: the predicted probability of rank 1 for a 30-year-old female is 34.6%.
 
 ------------------------------------------------------------------------
 
