@@ -146,8 +146,6 @@ ggplot() +
 
 ```
 
-
-
 ### Question 1.2: Identical instructors, different scales {.unnumbered}
 
 Create side-by-side stacked bar charts showing the observed rating distributions for Psychology and CS.
@@ -185,7 +183,6 @@ ggplot(data = rating_freq) +
 
 Answer: The only difference between the two departments is the thresholds for the ratings. This means that the thresholds control what category each latent rating will be sorted into.
 
-
 ### Exercise 1.3: What does tau live on? {.unnumbered}
 
 The thresholds $\tau_1 = -1$, $\tau_2 = 0$, $\tau_3 = 1$ are on the latent "teaching effectiveness" scale — the continuous axis you generated but would never observe in real data. The model re-expresses these same cut points as **log-cumulative-odds** — a transformation of the latent scale that makes the math linear. Convert between them:
@@ -195,7 +192,6 @@ a)  Convert the Psychology Dept thresholds to cumulative probabilities using `pl
 ::: {.callout-tip collapse="true" title="Hint: What does plogis() do?"}
 `plogis()` is the inverse logit. It converts log-cumulative-odds back to a probability: $\text{plogis}(\tau) = \frac{e^\tau}{1 + e^\tau} = P(Y \leq k)$
 :::
- 
 
 b)  Suppose you want a rating distribution where 10% are Poor, 30% Fair, 40% Good, and 20% Excellent. What thresholds would produce this? Use `qlogis()`. ::: {.callout-tip collapse="true" title="Hint: What does qlogis() do?"} `qlogis()` is the logit function, which goes the other direction. Give it a cumulative probability and it returns the threshold: $\text{qlogis}(p) = \log\frac{p}{1-p} = \tau$ ::: ::: {.panel-tabset} \## Your turn
 
@@ -284,7 +280,6 @@ kable(tidy(clm(eval_psych ~ 1, data = ratings)))
 
 Answer: The model thresholds are very similar to the hand-calculated log-cumulative-odds, which confirms that the model is trying to estimate category boundaries in the log cumulative odds space.
 
-
 ### Question 2.3: Cumulative probability plot {.unnumbered}
 
 Run the code below. It visualizes the numbers you computed in Exercise 2.1, with gray bars showing cumulative probabilities and blue segments showing category-specific probabilities.
@@ -325,11 +320,11 @@ Answer these questions:
 
 What do the gray bar and blue segment for "Fair" represent? Write them as probability statements.
 
-Answer: 
+Answer:
 
-The gray bar represents the cumulative probability of outcomes that are below the threshold between Fair and Good, P(rating < tau_2) or P(Fair) + P(Poor). 
+The gray bar represents the cumulative probability of outcomes that are below the threshold between Fair and Good, P(rating \< tau_2) or P(Fair) + P(Poor).
 
-The blue segment represents the probability of an outcome being Fair, P(tau_1 < rating < tau_2) or P(Fair).
+The blue segment represents the probability of an outcome being Fair, P(tau_1 \< rating \< tau_2) or P(Fair).
 
 ------------------------------------------------------------------------
 
@@ -343,8 +338,7 @@ The cumulative logit is: $\log\frac{P(Y \leq k)}{P(Y > k)}$
 
 For an outcome with $K$ categories, how many equations does this produce? Answer in 2--3 sentences.
 
-Answer: 
-The cumulative logit function computes log odds for each cumulative probability (for each category) as opposed to computing log odds for probability (normal logit link). For an outcome with $K$ categories, this produces $K - 1$ equations, one for each boundary between categories. 
+Answer: The cumulative logit function computes log odds for each cumulative probability (for each category) as opposed to computing log odds for probability (normal logit link). For an outcome with $K$ categories, this produces $K - 1$ equations, one for each boundary between categories.
 
 ### Question 3.2: Why not just use linear regression (aka metric models)? {.unnumbered}
 
@@ -383,7 +377,6 @@ linear_model_2$coefficients["effectiveness"]
 ```
 
 Answer: The slopes differ because the linear model is treating the numeric ratings as numeric, so different values for the excellent category lead to different fits of the ratings to the underlying real effectiveness.
-
 
 ------------------------------------------------------------------------
 
@@ -451,8 +444,6 @@ ggplot(data = gb %>%
 
 ```
 
-
-
 ### Question 4.3: Build models {.unnumbered}
 
 Fit the following models using `clm()` from the `ordinal` package:
@@ -480,21 +471,24 @@ m2 <- clm(Rank ~ Gender + Age, data = gb)
 m3 <- clm(Rank ~ Gender * Age, data = gb)
 ```
 
-(a)
+(a) 
+
 ```{r}
 m2$coefficients
 ```
 
-Answer: the threshold estimates represent the estimates for the threshold between the three ranks in log cumulative odds space, before any additional effects from gender or age (when all predictors = 0/default values). 
+Answer: the threshold estimates represent the estimates for the threshold between the three ranks in log cumulative odds space, before any additional effects from gender or age (when all predictors = 0/default values).
 
-(b)
+(b) 
+
 ```{r}
 kable(tidy(m2, exponentiate = TRUE))
 ```
 
 Answer: For Age, each additional year multiplies the probability of being in a higher rank by 1.0056
 
-(c)
+(c) 
+
 ```{r}
 kable(predictions(m2, newdata = datagrid(Gender = "F", Age = 30)))
 ```
@@ -517,6 +511,14 @@ $$LR = -2 \log\left(\frac{L_{\text{simple}}}{L_{\text{complex}}}\right)$$
 This statistic follows a chi-square distribution. A significant p-value means the complex model fits meaningfully better, so the interaction is worth keeping. A non-significant p-value means the extra parameters aren't earning their keep, so you should prefer the simpler model.
 :::
 
+```{r}
+kable(anova(m2, m3))
+
+```
+
+Answer: given that the p-value is significant, having an interaction term is warranted here.
+
+
 ### Question 5.2 {.unnumbered}
 
 Create a publication-quality comparison table of all four models using `modelsummary()`. Exponentiate the coefficients so they display as odds ratios.
@@ -524,6 +526,23 @@ Create a publication-quality comparison table of all four models using `modelsum
 ::: {.callout-tip collapse="true" title="Hint"}
 Put all four models in a named list: `list("Intercept only" = m0, "Gender" = m1, "Gender + Age" = m2, "Gender × Age" = m3)`. Pass it to `modelsummary()` with `exponentiate = TRUE` to display odds ratios and `stars = TRUE` to add significance stars.
 :::
+
+```{r}
+
+modelsummary(
+  list(
+    "Intercept only" = m0, 
+    "Gender" = m1, 
+    "Gender + Age" = m2, 
+    "Gender x Age" = m3 
+  ), 
+  exponentiate = TRUE, stars = TRUE
+)
+
+
+```
+
+
 
 ------------------------------------------------------------------------
 
