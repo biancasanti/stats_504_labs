@@ -566,6 +566,18 @@ predictions(m2,
 
 Compare the predicted probabilities for a 25-year-old female vs. a 25-year-old male. Which gender has a higher predicted probability of Rank 1?
 
+```{r}
+
+predictions(m2, 
+            newdata = datagrid(Age = 25, Gender = c("F", "M"))) %>%
+  kable(digits = 3, caption = "Predicted P(Rank) for 25-year-olds")
+
+```
+
+Answer: females have a higher predicted probability of rank 1. 
+
+
+
 ### Exercise 6.2: Verify by hand {.unnumbered}
 
 Compute the predicted probability of Rank 3 for a 25-year-old female using the formula:
@@ -577,6 +589,18 @@ Use the threshold and coefficient values from `coef(m2)`. Confirm that your manu
 ::: {.callout-tip collapse="true" title="Hint: The subtraction"}
 Remember the model uses subtraction: $\eta = \alpha_k - \beta X$. So it's `plogis(threshold - (beta_gender * 0 + beta_age * 25))`. Gender = 0 if the reference level is female.
 :::
+
+```{r}
+
+threshold <- m2$coefficients["3|2"]
+beta_gender <- m2$coefficients["GenderM"]
+beta_age <- m2$coefficients["Age"]
+
+plogis(threshold - (beta_gender * 0 + beta_age * 25))
+
+```
+
+Answer: this hand-computed probability matches the one calculated using predictions.
 
 ------------------------------------------------------------------------
 
