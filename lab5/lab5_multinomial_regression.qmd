@@ -263,7 +263,7 @@ Use a likelihood ratio test (`car::Anova()` with `type = "III"`) to report the o
 
 ```{r}
 # Enter your code
-
+kable(tidy(car::Anova(final_model, type = "III")), digits = 3)
 ```
 
 ### Question 4.2: Raw coefficients {.unnumbered}
@@ -286,10 +286,20 @@ Pick one of those two blocks. The `(Intercept)` row is $\beta_0$ and the `age_ce
 
 ```{r}
 # Enter your code
+tidy(final_model) %>% kable(digits = 3)
 
+exp(coef(final_model)["sporadic", "age_centered"])
 ```
 
-> Enter your equation and interpretation here: \_\_\_\_
+> Enter your equation and interpretation here: 
+
+For the comparison of sporadic vs rarely/never, the equation is 
+log_odds(sporadic/(rarely/never)) = 1.732 + 0.046 x age_centered + 0.040 x race_hispanic - 0.332 x race_other_mixed + ...
+where each variable other than age is 0-1 coded with respect to a certain baseline (e.g., Black for race). 
+
+The coefficient for mean-centered age is 0.046, which means that the odds of being in the sporadic category as opposed to the rarely/never category increase by 1.047 with every additional year of age. 
+
+
 
 ### Question 4.3: Changing the baseline {.unnumbered}
 
@@ -304,9 +314,27 @@ Use `relevel(voter_category, ref = "always")` before refitting. Use `predict(mod
 ```{r}
 # Enter your code
 
+voter_data$voter_category <- relevel(voter_data$voter_category, ref = "always")
+
+releveled_model <- multinom(voter_category ~ age_centered + race + gender + income_cat + educ + pol_ident, 
+                       data = voter_data, 
+                       trace = FALSE)
+
+kable(tidy(releveled_model), digits = 3)
+
+predict(final_model, 
+        newdata = head(voter_data, 2), 
+        type = "probs") %>%
+  kable(digits = 3, caption = "Original model predictions")
+
+predict(releveled_model, 
+        newdata = head(voter_data, 2), 
+        type = "probs") %>%
+  kable(digits = 3, caption = "Releveled model predictions")
+
 ```
 
-> Enter your answer: \_\_\_\_
+> Enter your answer: The model coefficients change, but the predicted probabilities don't. This is the underlying model estimations are the same, which leads to having the same predicted probabilities, but since the reference level is different all the model coefficients (which are with respect to a reference level) are also different.   
 
 ------------------------------------------------------------------------
 
