@@ -349,8 +349,7 @@ This chunk is set to `eval: false` so the file renders before you've built your 
 :::
 
 ```{r}
-#| eval: false
-ggemmeans(final_model, terms = c("ppage [all]")) %>%
+ggemmeans(final_model, terms = c("age_centered")) %>%
   ggplot(., aes(x = x, y = predicted, fill = response.level)) +
   geom_area() +
   geom_rug(sides = "b", position = "jitter", alpha = .2) +
@@ -367,7 +366,7 @@ ggemmeans(final_model, terms = c("ppage [all]")) %>%
 
 Describe the pattern you see in 1--2 sentences.
 
-> Enter your interpretation here: \_\_\_\_
+> Enter your interpretation here: As age increases, people are less likely to rarely or never vote; they are increasingly more likely to vote sometimes, although that proportion somewhat stabilizes over time, and are increasingly more likely to almost always vote. 
 
 ### Question 5.2: Predicted probabilities by education {.unnumbered}
 
@@ -379,10 +378,22 @@ Replace `"ppage [all]"` with `"educ"` in the `ggemmeans()` call. Since education
 
 ```{r}
 # Enter your code
-
+ggemmeans(final_model, terms = c("educ")) %>%
+  ggplot(., aes(x = x, y = predicted, fill = response.level)) +
+  geom_col(position = "dodge") +
+  geom_rug(sides = "b", position = "jitter", alpha = .2) +
+  labs(x = "\nAge", y = "Predicted Probability\n",
+       title = "Predicted Probabilities of Voting Frequency by Age") +
+  scale_fill_manual(
+    name = NULL,
+    values = c("always" = "#F6B533", "sporadic" = "#D07EA2", "rarely/never" = "#9854F7"),
+    labels = c("RARELY OR NEVER VOTE    ", "SOMETIMES VOTE    ", "ALMOST ALWAYS VOTE    "),
+    breaks = c("rarely/never", "sporadic", "always")
+  ) +
+  theme_minimal()
 ```
 
-> Enter your interpretation here: \_\_\_\_
+> Enter your interpretation here: With higher education levels, people are more likely to vote sometimes or always and are less likely to rarely or never vote. 
 
 ------------------------------------------------------------------------
 
