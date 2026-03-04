@@ -182,25 +182,35 @@ For inspiration on recreating the FiveThirtyEight style: <https://www.mikelee.co
 
 ```{r}
 # Plot 1
-# plot1 <- ggplot(...)
+
+plot1 <- ggplot(data = voter_data) +
+  geom_bar(aes(x = race, fill = voter_category), 
+           position = "fill") +
+  labs(x = "Race", y = "Proportion of voter categories", fill = "Voter Category")
+
 
 ```
 
 ```{r}
 # Plot 2
-# plot2 <- ggplot(...)
+plot2 <- ggplot(data = voter_data) +
+  geom_bar(aes(x = pol_ident, fill = voter_category), 
+           position = "fill") +
+  labs(x = "Political Identity", y = "Proportion of voter categories", fill = "Voter Category")
 
 ```
 
 ```{r}
 # Combine with patchwork
-# plot1 + plot2
+plot1 + plot2
 
 ```
 
 > Enter your interpretation here: \_\_\_\_
-
 ------------------------------------------------------------------------
+
+The plots show that voting frequency varies both by race and by political identity. Black and white people tend to vote more frequently than Hispanic people or people of other or mixed races. People who identify as Democrats and Republicans tend to vote more frequently, with Independents voting less frequently and people who identify as "Other" voting the least frequently. 
+
 
 # Part 3: Model Building
 
