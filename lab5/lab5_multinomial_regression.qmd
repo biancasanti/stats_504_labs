@@ -206,10 +206,11 @@ plot1 + plot2
 
 ```
 
-> Enter your interpretation here: \_\_\_\_
+> Enter your interpretation here: 
+The plots show that voting frequency varies both by race and by political identity. Black and white people tend to vote more frequently than Hispanic people or people of other or mixed races. People who identify as Democrats and Republicans tend to vote more frequently, with Independents voting less frequently and people who identify as "Other" voting the least frequently.
 ------------------------------------------------------------------------
 
-The plots show that voting frequency varies both by race and by political identity. Black and white people tend to vote more frequently than Hispanic people or people of other or mixed races. People who identify as Democrats and Republicans tend to vote more frequently, with Independents voting less frequently and people who identify as "Other" voting the least frequently. 
+ 
 
 
 # Part 3: Model Building
@@ -228,8 +229,9 @@ To keep the rendered document clean, add `#| results: hide` to the chunk header 
 
 ```{r}
 # Enter your code
-
-
+model_demo <- multinom(voter_category ~ age_centered + race + gender + income_cat + educ, 
+                       data = voter_data, 
+                       trace = FALSE)
 ```
 
 ### Question 3.2 {.unnumbered}
@@ -238,10 +240,16 @@ Should party identification (`pol_ident`) be added to the model? Fit a second mo
 
 ```{r}
 # Enter your code
+final_model <- multinom(voter_category ~ age_centered + race + gender + income_cat + educ + pol_ident, 
+                       data = voter_data, 
+                       trace = FALSE)
+
+anova(model_demo, final_model)
 
 ```
 
-> Enter your answer: \_\_\_\_
+> Enter your answer: 
+The likelihood ratio test statistic is 153.844 and the p value is 0, so the test supports using the full model that includes party identification. 
 
 **Use the model you select for the remainder of the assignment.** For clarity, call your chosen model `final_model`.
 
