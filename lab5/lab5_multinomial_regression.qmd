@@ -408,7 +408,6 @@ Same as Q5.1 — this chunk is set to `eval: false`. Delete that line once `fina
 :::
 
 ```{r}
-#| eval: false
 # Estimated marginal means: political group by voter category
 multi_an_pol <- emmeans(final_model, ~ pol_ident | voter_category)
 
@@ -424,7 +423,8 @@ contrast(coefs_pol, "revpairwise", by = "contrast") %>%
   kable(format = "markdown", digits = 3)
 ```
 
-> Enter your interpretation here: \_\_\_\_
+> Enter your interpretation here: The marginal means show the mean estimate for the effect of each political group on the log odds of being in the relevant voter frequency category (always or sporadic) as opposed to the baseline (rarely/never). For example, that means that being a Democrat increases the log odds of being in the sporadic category as opposed to rarely/never (estimate = 0.961, positive), while being an Independent decreases the log odds of being in the always category as opposed to rarely/never (estimate = -0.049, negative). The pairwise contrasts show the difference in log odds for being in one voting frequency category (always or sporadic) vs the baseline between different political groups. For example, Independents are significantly less likely to be in the sporadic category as opposed to rarely/never than Democrats (estimate = -0.370, p = 0.003). 
+
 
 ### Question 6.2: Education level differences {.unnumbered}
 
@@ -437,9 +437,23 @@ Replace `pol_ident` with `educ` in the `emmeans()` and `contrast()` calls.
 ```{r}
 # Enter your code
 
+# Estimated marginal means: education level by voter category
+multi_an_educ <- emmeans(final_model, ~ educ | voter_category)
+
+# Contrasts on the log scale (log-odds differences between voter categories, within each political group)
+coefs_educ <- contrast(regrid(multi_an_educ, "log"), "trt.vs.ctrl1", by = "educ")
+
+# Display results, organized by contrast
+update(coefs_educ, by = "contrast") %>%
+  kable(format = "markdown", digits = 3)
+
+# Pairwise differences between political groups, within each contrast
+contrast(coefs_educ, "revpairwise", by = "contrast") %>%
+  kable(format = "markdown", digits = 3)
+
 ```
 
-> Enter your interpretation here: \_\_\_\_
+> Enter your interpretation here: The marginal means show the mean estimate for the effect of each education level on the log odds of being in the relevant voter frequency category (always or sporadic) as opposed to the baseline (rarely/never). For example, that means that being college-educated increases the log odds of being in the sporadic category as opposed to rarely/never (estimate = 0.986, positive), while having an education level of high school or less decreases the log odds of being in the always category as opposed to rarely/never (estimate = -0.711, negative). The pairwise contrasts show the difference in log odds for being in one voting frequency category (always or sporadic) vs the baseline between different education levels. For example, people with high school or less education levels are significantly less likely to be in the sporadic category as opposed to rarely/never than college-educated people (estimate = -0.799, p < 0.001). 
 
 ------------------------------------------------------------------------
 
@@ -459,4 +473,16 @@ Write a **1-paragraph results section** for your final model. Your paragraph sho
 *We used a multinomial logistic regression model (baseline category: rarely/never) to predict voting frequency from age, race, gender, income, education, and political identification (N = \[n\]). The likelihood ratio test indicated that political identification was a significant predictor of voter category, χ²(\[df\]) = \[value\], p \< .001. Among \[comparison\], each additional year of age was associated with \[an increase/decrease\] in the odds of being \[category\] vs. rarely/never voting (OR = \[value\], 95% CI \[\[lower\], \[upper\]\]). Predicted probability plots showed that \[describe key pattern from your visualizations\].*
 :::
 
-> Enter your write-up here: \_\_\_\_
+```{r}
+
+# extract sample size
+sample_size <- length(unique(voter_data$RespId))
+
+
+kable(tidy(final_model, exponentiate = TRUE, conf.int = TRUE), digits = 3)
+```
+
+
+> Enter your write-up here: 
+
+We used a multinomial logistic regression model (baseline category: rarely/never) to predict voting frequency from age, race, gender, income, education, and political identification (N = `r sample_size`). The likelihood ratio test indicated that political identification was a significant predictor of voter category, χ²(6) = 153.844, p < .001. Among those who voted rarely/never or sporadically, each additional year of age was associated with an increase in the odds of being in the sporadic category vs. rarely/never voting (OR = 1.047, 95% CI [1.042, 1.052], p < .001). Predicted probability plots showed that with higher education levels, people are more likely to vote sometimes or always and are less likely to rarely or never vote and that as age increases, people are less likely to rarely or never vote; they are increasingly more likely to vote sometimes, although that proportion somewhat stabilizes over time, and are increasingly more likely to almost always vote.
