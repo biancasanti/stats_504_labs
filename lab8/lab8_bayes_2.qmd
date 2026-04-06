@@ -371,21 +371,21 @@ Here's how to wrangle and combine these two results into a single data frame. Th
 
 ```{r, warning = F}
 
-tidy(fit1.ols, conf.int = TRUE)
-tidy(fit1.b)
-# 
-# bind_rows(
-#   tidy(fit1.ols, conf.int = TRUE) %>% select(term, estimate, conf.low, conf.high),
-#   tidy(fit1.b) %>% select(term, estimate, conf.low, conf.high) 
-#   %>% filter(term != "sd__Observation")
-# ) %>% 
-#   mutate(method = rep(c("lm()", "brm()"), each = 2)) %>% 
-#   
-#   ggplot(aes(x = estimate, xmin = conf.low, xmax = conf.high, y = method)) +
-#   geom_pointrange() +
-#   scale_x_continuous("parameter space", expand = expansion(mult = 0.2)) +
-#   scale_y_discrete(expand = expansion(mult = 5)) +
-#   facet_wrap(~ term, scales = "free_x")
+# tidy(fit1.ols, conf.int = TRUE)
+# tidy(fit1.b)
+
+bind_rows(
+  tidy(fit1.ols, conf.int = TRUE) %>% select(term, estimate, conf.low, conf.high),
+  tidy(fit1.b) %>% select(term, estimate, conf.low, conf.high)
+  %>% filter(term != "sd__Observation")
+) %>%
+  mutate(method = rep(c("lm()", "brm()"), each = 2)) %>%
+
+  ggplot(aes(x = estimate, xmin = conf.low, xmax = conf.high, y = method)) +
+  geom_pointrange() +
+  scale_x_continuous("parameter space", expand = expansion(mult = 0.2)) +
+  scale_y_discrete(expand = expansion(mult = 5)) +
+  facet_wrap(~ term, scales = "free_x")
 ```
 
 NOTE: having issues running the above because of column selection -- commenting it out so that the code can run easily.
@@ -535,6 +535,8 @@ In the parlance of Probability, do you know what is the term by which the distri
 ```{r}
 # Enter your answer here
 
+# I'm not entirely sure, but I think the off-diagonal distributions are conditional probability distributions, while the distributions on the diagonal are unconditional probability distributions 
+
 ```
 
 Notice how the two $\beta$ parameters seem to have a strong negative correlation. We can quantify that correlation with the `vcov()` function.
@@ -592,6 +594,9 @@ How does this concept relate to representing uncertainty? Can you anticipate how
 
 ```{r}
 # Enter your answer here
+
+# The distribution of values in the draws from the posterior allows you to quantify the uncertainty in the estimates based on the spread of the posterior draws. 
+# I think that predictions for the model are calculated by taking draws for the two different beta values and calculating the expected bill length for different body masses, with one equation for each of the 4000 different draws.
 
 ```
 
@@ -716,6 +721,8 @@ Discuss the skew in $\sigma$. Why it might arise, etc.?
 ```{r}
 # Enter your answer here
 
+# Sigma is skewed a bit to the right, such that there are more higher values. This is probably due to the fact that there is a limit on the lower end of the sigma distribution for how small the error can be, while on the higher end the error could theoretically be infinitely large and larger values likely reflect outliers 
+
 ```
 
 * The mean is the **brms** default summary, and McElreath (2015, 2020) defaulted to the mean in his texts.
@@ -735,6 +742,8 @@ Given the skew in sigma and what you know about summary statistics, what might b
 
 ```{r}
 # Enter your answer here
+
+# Using just one of the values, and especially just the mean, might not give someone a full understanding of the center of the distribution and how it's skewed. This means that it's probably best practice to visualize the distribution and try to report all three values if possible, and if not to make decisions on which value to use based on what the distribution looks like.
 
 ```
 
@@ -886,6 +895,8 @@ We have done all this without yet specifying a prior. What do you think is going
 ```{r}
 # Enter your answer here
 
+# I think the brms package has a standard default prior, likely a very wide Gaussian, that it's been using as a general prior for all parameters.
+
 ```
 
 ### Exercise 2 {.unnumbered}
@@ -894,6 +905,103 @@ In the last part, we made a subset of the `penguins` data called `gentoo`, which
 
 ```{r}
 # Enter your code here
+
+# make dataset
+gentoo <- penguins %>% 
+  filter(species == "Gentoo") %>%
+  drop_na()
+
+# fit bayesian model
+fit2.b <- brm(
+  data = gentoo,
+  bill_length_mm ~ 1 + body_mass_g
+)
+summary(fit2.b)
+
+# make plot of posterior distributions 
+plot(fit2.b)
+
+# make plot of posterior distributions including paired values 
+pairs(fit2.b, off_diag_args = list(size = 1/4, alpha = 1/4))
+
+
+# save draws from the posterior
+draws2 <- as_draws_df(fit2.b)
+
+draws2 <- draws2 %>% 
+  mutate(beta0 = b_Intercept,
+         beta1 = b_body_mass_g)
+
+# make plot of posterior distribution for body mass
+draws2 %>% 
+  mutate(body_mass_g = mean(gentoo$body_mass_g)) %>% 
+  mutate(y_hat = beta0 + beta1 * body_mass_g) %>% 
+  
+  ggplot(aes(x = y_hat)) +
+  # note the changes to this line
+  stat_halfeye(point_interval = median_qi, .width = c(.5, .99)) +
+  scale_y_continuous(NULL, breaks = NULL) +
+  labs(title = "Posterior distribution for Gentoo penguins",
+       subtitle = "The dot marks the median.\nThe thicker line marks the 50% interval, and\nthe thinner line marks the 99% interval.",
+       x = expression(hat(italic(y))*'|'*italic(x)==3733.1)) +
+  coord_cartesian(xlim = c(46.5, 48.5))
+
+
+# make plot of posterior distributions with all three center parameters
+center_points <- draws2 %>% 
+  rename(`beta[0]` = beta0,
+         `beta[1]` = beta1) %>% 
+  pivot_longer(cols = c(`beta[0]`, `beta[1]`, sigma), 
+               names_to = "parameter") %>% 
+  group_by(parameter) %>% 
+  summarise(mean = mean(value),
+            median = median(value),
+            mode = Mode(value)) %>% 
+  pivot_longer(starts_with("m"), names_to = "statistic")
+
+draws2 %>% 
+  rename(`beta[0]` = beta0,
+         `beta[1]` = beta1) %>% 
+  pivot_longer(cols = c(`beta[0]`, `beta[1]`, sigma), 
+               names_to = "parameter") %>% 
+  
+  ggplot(aes(x = value)) +
+  geom_density() +
+  geom_vline(data = center_points,
+             aes(xintercept = value, color = statistic),
+             size = 3/4) +
+  scale_color_viridis_d(option = "A", end = .8) +
+  scale_y_continuous(NULL, breaks = NULL) +
+  xlab("parameter space") +
+  facet_wrap(~ parameter, labeller = label_parsed, scales = "free", ncol = 1) +
+  theme(strip.text = element_text(size = 14))
+
+
+# make overall spaghetti plot for all the draws
+draws2 %>% 
+  select(.draw, beta0, beta1) %>% 
+  expand_grid(body_mass_g = range(gentoo$body_mass_g)) %>% 
+  mutate(y_hat = beta0 + beta1 * body_mass_g) %>% 
+  
+  # plot!
+  ggplot(aes(x = body_mass_g, y = y_hat, group = .draw)) +
+  geom_line(linewidth = 1/10, alpha = 1/10)
+
+
+# make spaghetti plot for a random subset of the draws
+set.seed(888)
+
+draws2 %>% 
+  # take a random sample of 20 rows
+  slice_sample(n = 20) %>% 
+  select(.draw, beta0, beta1) %>% 
+  expand_grid(body_mass_g = range(gentoo$body_mass_g)) %>% 
+  mutate(y_hat = beta0 + beta1 * body_mass_g) %>% 
+  # make plot
+  ggplot(aes(x = body_mass_g, y = y_hat, group = .draw, color = beta0)) +
+  geom_line() +
+  scale_color_viridis_c(expression(beta[0]~(the~intercept)), end = .9)
+
 
 ```
 
