@@ -857,6 +857,9 @@ Compare `fit1.b$prior` to the priors you set explicitly in `fit2.b`. Count the p
 
 ```{r}
 # Enter your answer here
+
+# The results are very similar, with some small differences in the values for the intercept, which means the manually set priors match the default priors quite well. 
+
 ```
 
 ::: {.callout-tip collapse="true" title="Answer"}
@@ -893,6 +896,9 @@ The first row in `loo_compare()` is the better model. What does it mean for your
 
 ```{r}
 # Enter your answer here
+
+# It means that body_mass_g, which is a predictor in the fit1.b model but not in the fit0.b model, is a useful predictor of bill length that captures variation in the data. 
+
 ```
 
 ### Exercise 3 {.unnumbered}
@@ -912,18 +918,78 @@ gentoo <- penguins %>%
   drop_na()
 
 # fit bayesian model
-fit2.b <- brm(
+fit_g.b <- brm(
   data = gentoo,
   bill_length_mm ~ 1 + body_mass_g
 )
-summary(fit2.b)
+summary(fit_g.b)
 
 
 # extract posterior distributions
-posterior_summary(fit1.b)
-b0    <- posterior_summary(fit1.b)[1, 1]
-b1    <- posterior_summary(fit1.b)[2, 1]
-sigma <- posterior_summary(fit1.b)[3, 1]
+posterior_summary(fit_g.b)
+b0    <- posterior_summary(fit_g.b)[1, 1]
+b1    <- posterior_summary(fit_g.b)[2, 1]
+sigma <- posterior_summary(fit_g.b)[3, 1]
+
+# plot posterior distributions with data points
+crossing(body_mass_g    = seq(from = 3900, to = 6500, length.out = 200),
+         bill_length_mm = seq(from = 35, to = 60, length.out = 200))  %>% 
+  mutate(density = dnorm(x = bill_length_mm, 
+                         mean = b0 + b1 * body_mass_g,
+                         sd = sigma)) %>% 
+  
+  ggplot(aes(x = body_mass_g, y = bill_length_mm)) +
+  geom_raster(aes(fill = density),
+              interpolate = TRUE) +
+  geom_point(data = gentoo,
+             shape = 21, color = "white", fill = "black", stroke = 1/4) +
+  scale_fill_viridis_c(option = "A", begin = .15, limits = c(0, NA)) +
+  coord_cartesian(xlim = range(gentoo$body_mass_g),
+                  ylim = range(gentoo$bill_length_mm))
+
+
+# plot of model posterior distributions
+as_draws_df(fit_g.b) %>% 
+  rename(`beta[0]` = b_Intercept,
+         `beta[1]` = b_body_mass_g) %>% 
+  pivot_longer(cols = c(`beta[0]`, `beta[1]`, sigma), 
+               names_to = "parameter") %>% 
+  
+  ggplot(aes(x = value)) +
+  stat_histinterval(.width = .95, normalize = "panels") +
+  scale_y_continuous(NULL, breaks = NULL) +
+  labs(title = "Gentoo penguin model",
+       subtitle = "95% credible intervals",
+       x = "parameter space") +
+  facet_wrap(~ parameter, scales = "free", labeller = label_parsed)
+
+
+# create new data df for gentoo penguins
+nd_g <- tibble(body_mass_g = seq(
+  from = min(gentoo$body_mass_g),
+  to = max(gentoo$body_mass_g),
+  length.out = 100))
+
+# plot of conditional mean distribution
+fitted(fit_g.b, 
+       newdata = nd_g,
+       summary = F) %>% 
+  data.frame() %>% 
+  set_names(pull(nd_g, body_mass_g)) %>% 
+  mutate(draw = 1:n()) %>% 
+  pivot_longer(-draw) %>% 
+  mutate(body_mass_g = as.double(name)) %>%
+  
+  ggplot(aes(x = body_mass_g, y = value, fill = after_stat(.width))) +
+  # make more ribbons
+  stat_lineribbon(.width = ppoints(50)) +
+  scale_fill_distiller(limits = 0:1) +
+  coord_cartesian(ylim = range(gentoo$bill_length_mm)) +
+  theme_classic()
+
+
+# plot of posterior predictive distributions
+pp_check(fit_g.b, ndraws = 100)
 
 ```
 
