@@ -685,6 +685,9 @@ Does the posterior predictive distribution capture the general shape of the obse
 
 ```{r}
 # Enter your answer here
+
+# It captures the general shape in the data without any systematic deviations. 
+
 ```
 
 ## LOO-CV model comparison
@@ -707,6 +710,9 @@ Which model wins on LOO-CV? By how much (in ELPD units)? Is this surprising?
 
 ```{r}
 # Enter your answer here
+
+# The partial model wins on LOO-CV, by 183.2 (with a much smaller SE of 33.1). This is not surprising, since the partial model is actually accounting for and modeling the differences between the tanks instead of assuming they are all the same.
+
 ```
 
 ::: {.callout-tip collapse="true" title="Answer"}
@@ -725,8 +731,10 @@ Check the Pareto-k diagnostics from `loo()`. Are there any problematic observati
 ```{r}
 # Enter your code here — look at loo_partial and check for warnings
 
-# predictions not as accurate bc leaving out one tank at a time, as opposed to leaving out one fish at a time
-# doing cross-validation at a higher level unit rather than low-level units here.
+plot(loo_partial)
+
+# A lot of the observations are above 0.7 because we are leaving out one tank at a time, as opposed to one fish at a time, so many of the observations are influential. I would probably leave out the two observations about 1 by refitting the model with reloo(). 
+
 
 ```
 
